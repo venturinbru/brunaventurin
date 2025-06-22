@@ -1,0 +1,73 @@
+---
+title: "Juntando os Bancos e Extraindo as coordenadas dos municípios do ES"
+author: "Bruna Venturin"
+date: "2025-06-22"
+output: html_document
+---
+
+```{r}
+```
+
+## R Markdown
+
+This is an R Markdown document - Bruna Venturin.
+Abaixo vou descrever o passo a passo
+
+## baixando os dados de geometria espacial dos municípios do ES - 2010
+```{r}
+install.packages(c("geobr", "tidyverse", "haven", "writexl"))
+```
+## ativando os pacotes que baixamos
+```{r}
+library(sf)
+library(geobr)
+library(tidyverse)
+```
+# puxando os dados de todos os municípios (5567) do Brasil - para extrair as coordenadas (geometria do estado)
+# vamos imaginar que gostaríamos dos dados do IDHM dos municípios, mas com o objetivo principal de extrair os dados espaciais
+```{r}
+idhm_2010 <- read_municipality(code_muni = "all", year=2010)
+```
+# criando um banco com os dados (geometria) espaciais dos 78 municípios do ES / para fazer análise espacial
+```{r}
+dados_IDHM_ES <- idhm_2010 %>% filter(abbrev_state == "ES")
+```
+# juntar dados_ES_para_merge com dados_IDHM_ES
+# Realizando o merge (junção à esquerda) dos dados do banco criado e da geometria espacial do ES
+```{r}
+library(readxl)
+```
+# importar banco mãe
+```{r}
+dados_ES_para_merge <- read_excel("Documents/dados_ES_para_merge.xlsx")
+```
+# renomeando variável v.1.6, pois no stata não funciona o nome com ponto
+```{r}
+library(dplyr)
+dados_ES_para_merge <- dados_ES_para_merge %>%
+  rename(NOME_MUNICIPIO = V.1.6)
+```
+# nomear a variável COD_MUNICIPIO_7dig code_muni (igual ao banco que quer juntar - codigo do IBGE do municipio com 7 digitos)
+# no banco dados_IDHM_ES é code_muni, então vamos criar uma nova variável chamada code_muni
+```{r}
+dados_ES_para_merge <- dados_ES_para_merge %>%
+  rename(code_muni = COD_MUNICIPIO_7dig)
+```
+# realizando o merge
+```{r}
+banco_merge_completo <- left_join(dados_ES_para_merge, dados_IDHM_ES, by = "code_muni")
+```
+#salvar como um banco a ser disponibilizado 
+# salvando o banco de dado
+```{r}
+library(haven)
+library("writexl")
+```
+# salvando o banco após merge para o Stata
+```{r}
+write_dta(banco_merge_completo, path = "dadosES_stata.dta", version = 13)
+```
+# salvando o banco após merge para o formato xlsx
+```{r}
+write_xlsx(banco_merge_completo, "bancocompletoDADOSES.xlsx")
+```
