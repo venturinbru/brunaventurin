@@ -39,6 +39,7 @@ library("writexl")
 write_xlsx(banco_merge_completo, "bancocompletoDADOSES.xlsx")
 
 # Para salvar o banco de dados no Stata, precisamos renomear as variáveis: 
+# pois o stata não aceita a nomenclatura com ponto
 #code_state
 # renomeando a variável code_state.x
 banco_merge_completo <- banco_merge_completo %>%
@@ -46,9 +47,8 @@ banco_merge_completo <- banco_merge_completo %>%
 # renomeando a variável code_state.y
 banco_merge_completo <- banco_merge_completo %>%
   rename(code_state_y = code_state.y)
+# outras colunas possuem tipos que o stata não suporta, por exemplo os dados de geometria espacial.
+# precisa excluir aquelas últimas colunas
 
 # salvando o banco após merge para o Stata
 write_dta(banco_merge_completo, path = "dadosES_stata.dta", version = 13)
-
-
-
